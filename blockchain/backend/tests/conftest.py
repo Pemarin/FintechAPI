@@ -1,24 +1,22 @@
 """
 conftest.py — Fixtures globais do PyTest para o backend FintechBlock.
 
-Estratégia de mock:
-- As variáveis de ambiente do Fabric são configuradas ANTES de qualquer import
-  para que pydantic-settings as leia corretamente.
-- `fabric_client` é completamente mockado: os testes não dependem de
-  infra Hyperledger Fabric real.
-- `get_settings` usa lru_cache; o cache é limpo entre os testes para
-  garantir isolamento.
+Correções aplicadas:
+- os.environ[key] = value (força sobrescrita, evita conflito com CI env vars)
+- patch de `app.routers.transactions.settings` corrige o settings carregado
+  no nível do módulo em transactions.py (settings = get_settings()),
+  que não é afetado pelo lru_cache clear.
 """
 
 import os
-import json
 from unittest.mock import MagicMock, patch
-from functools import lru_cache
 
 import pytest
 from fastapi.testclient import TestClient
 
 # ── Variáveis de ambiente de teste ────────────────────────────────────────────
+TEST_API_KEY = "test-api-key-secret"
+
 MOCK_ENV = {
     "FABRIC_MSP_ID": "Org1MSP",
     "FABRIC_CHANNEL": "mychannel",
@@ -30,12 +28,12 @@ MOCK_ENV = {
     "FABRIC_CERT_PATH": "/tmp/cert",
     "FABRIC_KEY_PATH": "/tmp/key",
     "FABRIC_TLS_CERT_PATH": "/tmp/tls.crt",
-    "API_KEY": "test-api-key-secret",
+    "API_KEY": TEST_API_KEY,
 }
 
-# Garante que as variáveis existam antes de qualquer import de módulo da app
+# Força sobrescrita — garante que valores do CI não conflitem com os testes
 for key, value in MOCK_ENV.items():
-    os.environ.setdefault(key, value)
+    os.environ[key] = value
 
 
 # ── Payloads de resposta do chaincode ─────────────────────────────────────────
@@ -77,12 +75,40 @@ MOCK_HISTORY_RESULT = {
 # ── Fixtures ───────────────────────────────────────────────────────────────────
 
 @pytest.fixture(autouse=True)
-def clear_settings_cache():
-    """Limpa o lru_cache de get_settings entre testes para garantir isolamento."""
+def reset_settings():
+    """
+    Corrige o settings carregado no nível do módulo em transactions.py.
+
+    O problema: transactions.py executa `settings = get_settings()` na importação.
+    Limpar o lru_cache não atualiza essa variável — ela guarda a instância antiga.
+    A solução: substituir o objeto settings do módulo por um mock com a API_KEY correta.
+    """
     from app.core.config import get_settings
     get_settings.cache_clear()
-    yield
+
+    mock_settings = MagicMock()
+    mock_settings.API_KEY = TEST_API_KEY
+
+    with patch("app.routers.transactions.settings", mock_settings):
+        yield
+
     get_settings.cache_clear()
+
+
+@pytest.fixture
+def client():
+    """TestClient do FastAPI com fabric e settings completamente mockados."""
+    mock_settings = MagicMock()
+    mock_settings.API_KEY = TEST_API_KEY
+
+    with patch("app.routers.transactions.settings", mock_settings), \
+         patch("app.routers.transactions.invoke_chaincode") as inv, \
+         patch("app.routers.transactions.query_chaincode") as qry:
+        inv.return_value = MOCK_REGISTER_RESULT
+        qry.return_value = MOCK_QUERY_RESULT
+        from app.main import app
+        with TestClient(app) as c:
+            yield c
 
 
 @pytest.fixture
@@ -102,27 +128,9 @@ def mock_query():
 
 
 @pytest.fixture
-def mock_fabric(mock_invoke, mock_query):
-    """Convenience fixture: ativa invoke E query ao mesmo tempo."""
-    return mock_invoke, mock_query
-
-
-@pytest.fixture
-def client():
-    """TestClient do FastAPI com fabric completamente mockado."""
-    with patch("app.routers.transactions.invoke_chaincode") as inv, \
-         patch("app.routers.transactions.query_chaincode") as qry:
-        inv.return_value = MOCK_REGISTER_RESULT
-        qry.return_value = MOCK_QUERY_RESULT
-        from app.main import app
-        with TestClient(app) as c:
-            yield c
-
-
-@pytest.fixture
 def auth_headers():
-    """Headers padrão com API Key válida."""
-    return {"x-api-key": MOCK_ENV["API_KEY"]}
+    """Headers com API Key válida (deve coincidir com TEST_API_KEY)."""
+    return {"x-api-key": TEST_API_KEY}
 
 
 @pytest.fixture
