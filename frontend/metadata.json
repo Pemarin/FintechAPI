@@ -1,0 +1,6 @@
+{
+  "name": "Blockchain Verifier",
+  "description": "Uma plataforma de verifica\u00e7\u00e3o de integridade de transa\u00e7\u00f5es financeiras baseada em blockchain.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

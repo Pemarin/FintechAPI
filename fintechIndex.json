@@ -1,0 +1,8 @@
+{
+    "index": {
+        "fields": ["docType", "fintechId"]
+    },
+    "ddoc": "indexFintechDoc",
+    "name": "indexFintech",
+    "type": "json"
+}
