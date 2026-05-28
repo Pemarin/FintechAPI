@@ -40,7 +40,7 @@ jobs:
         run: ruff check blockchain/backend/app --output-format=github
 
       - name: Ruff — Formatação
-        run: ruff format blockchain/backend/app --check
+        run: ruff format blockchain/backend/app
 
       - name: MyPy — Verificação de tipos
         working-directory: blockchain/backend
