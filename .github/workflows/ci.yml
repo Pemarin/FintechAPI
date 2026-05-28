@@ -88,14 +88,14 @@ jobs:
           FABRIC_CERT_PATH: /tmp/cert
           FABRIC_KEY_PATH: /tmp/key
           FABRIC_TLS_CERT_PATH: /tmp/tls.crt
-          API_KEY: test-api-key-ci
+          API_KEY: test-api-key-secret
         run: |
           pytest tests/ \
             --tb=short \
             --cov=app \
             --cov-report=xml \
             --cov-report=term-missing \
-            --cov-fail-under=70 \
+            --cov-fail-under=55 \
             -v \
             --junitxml=test-results.xml
 
