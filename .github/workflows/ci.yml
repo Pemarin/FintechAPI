@@ -174,7 +174,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────
   # JOB 4 Docker Build & Push (Backend)
   # ─────────────────────────────────────────────────────────────
-  docker-build:
+  #docker-build:
     name: 🐳 Docker — Build & Push Backend
     runs-on: ubuntu-latest
     needs: [test-backend, test-frontend]
@@ -241,7 +241,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────
   # JOB 5 Deploy para Staging (branch: develop)
   # ─────────────────────────────────────────────────────────────
-  deploy-staging:
+  #deploy-staging:
     name: 🚀 Deploy — Staging
     runs-on: ubuntu-latest
     needs: docker-build
@@ -278,7 +278,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────
   # JOB 6 Deploy para Produção (branch: main, aprovação manual)
   # ─────────────────────────────────────────────────────────────
-  deploy-production:
+  #deploy-production:
     name: 🏭 Deploy — Produção
     runs-on: ubuntu-latest
     needs: docker-build
