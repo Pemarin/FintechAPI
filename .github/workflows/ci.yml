@@ -1,4 +1,4 @@
-name: 🚀 FintechBlock — Pipeline CI/CD
+name: Pipeline CI/CD
 
 on:
   push:
@@ -17,7 +17,7 @@ env:
 # ─────────────────────────────────────────────────────────────
 jobs:
   lint-backend:
-    name: 🔍 Lint — Backend Python
+    name: Backend Python
     runs-on: ubuntu-latest
 
     steps:
@@ -52,7 +52,7 @@ jobs:
   # JOB 2 Testes Unitários e de Integração (Backend PyTest)
   # ─────────────────────────────────────────────────────────────
   test-backend:
-    name: 🧪 Testes — Backend PyTest
+    name: Testes Backend PyTest
     runs-on: ubuntu-latest
     needs: lint-backend
     permissions:        
@@ -132,7 +132,7 @@ jobs:
   # JOB 3 Lint & Build do Frontend (React + TypeScript)
   # ─────────────────────────────────────────────────────────────
   test-frontend:
-    name: 🎨 Lint & Build — Frontend
+    name: Frontend
     runs-on: ubuntu-latest
 
     steps:
