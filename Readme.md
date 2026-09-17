@@ -45,7 +45,7 @@ O mercado financeiro busca:
 
 - Desenvolvedores da fintech
 - Reguladores (ex: Banco Central)
-- Equipes de segurança
+- Equipes de segurança.
 
 ## Critérios de Qualidade
 
